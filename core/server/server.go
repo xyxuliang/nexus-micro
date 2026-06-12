@@ -20,7 +20,6 @@ import (
 	"github.com/xyxuliang/nexus-micro/core/middleware"
 	"github.com/xyxuliang/nexus-micro/core/registry"
 	"github.com/xyxuliang/nexus-micro/core/response"
-	"github.com/xyxuliang/nexus-micro/core/sse"
 )
 
 // Option 是 Server 的函数式配置选项。

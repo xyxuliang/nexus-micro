@@ -39,12 +39,12 @@ type LabelPair struct {
 // Counter 是单调递增的计数器指标。
 // 主要用于记录请求总数、错误总数等累积量。
 type Counter struct {
-	mu         sync.RWMutex
-	name       string
-	help       string
-	labels     []string
-	values     map[string]float64      // 无标签时的值
-	labeled    map[string]float64      // 带标签的值（key = "label1=val1,label2=val2"）
+	mu      sync.RWMutex
+	name    string
+	help    string
+	labels  []string
+	values  map[string]float64 // 无标签时的值
+	labeled map[string]float64 // 带标签的值（key = "label1=val1,label2=val2"）
 }
 
 // Inc 计数器加 1。
@@ -169,7 +169,7 @@ type Histogram struct {
 	mu      sync.Mutex
 	name    string
 	help    string
-	buckets []float64       // 分桶边界（如 [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]）
+	buckets []float64 // 分桶边界（如 [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]）
 	values  map[string]float64
 	labeled map[string]map[string]float64 // key -> {sum, count, bucket_le_N}
 }
@@ -468,17 +468,17 @@ func init() {
 	RateLimitTotal = DefaultRegistry.RegisterCounter(
 		"nexus_ratelimit_rejections_total",
 		"Total number of rate limit rejections",
-		[]string{"service", "method"},
+		"service", "method",
 	)
 	CircuitBreakerState = DefaultRegistry.RegisterGauge(
 		"nexus_circuit_breaker_state",
 		"Circuit breaker state (0=Closed, 1=Open, 2=HalfOpen)",
-		[]string{"service"},
+		"service",
 	)
 	SheddingTotal = DefaultRegistry.RegisterCounter(
 		"nexus_shedding_rejections_total",
 		"Total number of overload shedding rejections",
-		[]string{"service"},
+		"service",
 	)
 	ActiveConnections = DefaultRegistry.RegisterGauge(
 		"nexus_active_connections",

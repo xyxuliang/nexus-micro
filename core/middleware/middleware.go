@@ -335,7 +335,7 @@ func HTTPTracing(next http.Handler) http.Handler {
 
 		// 注入响应头
 		respHeaders := make(map[string]string)
-		tracer.InjectHTTPHeaders(&span.SpanContext, respHeaders)
+		tracer.InjectHTTPHeaders(tracer.SpanContextFromContext(ctx), respHeaders)
 		for k, v := range respHeaders {
 			w.Header().Set(k, v)
 		}
