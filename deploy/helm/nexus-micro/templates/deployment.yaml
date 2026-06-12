@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nexus-micro.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "nexus-micro.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "nexus-micro.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "nexus-micro.selectorLabels" . | nindent 8 }}
+      {{- if .Values.monitoring.prometheus.enabled }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: {{ .Values.monitoring.prometheus.port | quote }}
+        prometheus.io/path: {{ .Values.monitoring.prometheus.path }}
+      {{- end }}
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ .Values.service.httpPort }}
+        - name: grpc
+          containerPort: {{ .Values.service.grpcPort }}
+        env:
+        - name: CONFIG_PATH
+          value: /app/etc/service.yaml
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /live
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        volumeMounts:
+        - name: config
+          mountPath: /app/etc
+      volumes:
+      - name: config
+        configMap:
+          name: {{ include "nexus-micro.fullname" . }}-config

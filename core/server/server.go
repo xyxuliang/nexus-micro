@@ -16,9 +16,11 @@ import (
 	"github.com/xyxuliang/nexus-micro/core/config"
 	"github.com/xyxuliang/nexus-micro/core/di"
 	"github.com/xyxuliang/nexus-micro/core/lifecycle"
+	"github.com/xyxuliang/nexus-micro/core/metrics"
 	"github.com/xyxuliang/nexus-micro/core/middleware"
 	"github.com/xyxuliang/nexus-micro/core/registry"
 	"github.com/xyxuliang/nexus-micro/core/response"
+	"github.com/xyxuliang/nexus-micro/core/sse"
 )
 
 // Option 是 Server 的函数式配置选项。
@@ -50,6 +52,10 @@ type Server struct {
 	started     bool          // 是否已启动
 	services    []interface{} // 注册的业务服务
 	httpHandler http.Handler  // HTTP 处理器
+	sseHandlers []struct {    // SSE 端点（延迟注册）
+		pattern string
+		handler http.Handler
+	}
 }
 
 // New 创建一个新的 Server 实例。
@@ -142,6 +148,40 @@ func (s *Server) RegisterService(svc interface{}) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.services = append(s.services, svc)
+}
+
+// HandleSSE 注册 SSE 端点。
+// 与普通 HTTP 端点不同，SSE 端点绕过 JSON 响应包装，直接写入 HTTP 响应流。
+// handler 是标准的 http.Handler，通常使用 sse.NewChannelHandler 或 sse.NewHandler 创建。
+//
+// 使用方式：
+//
+//	srv.HandleSSE("/events", sse.NewChannelHandler(func(ch chan<- sse.Event, r *http.Request) {
+//	    ch <- sse.Event{Data: "hello"}
+//	}))
+func (s *Server) HandleSSE(pattern string, handler http.Handler) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	// 包装 SSE 中间件，确保 context 被标记为 SSE 请求
+	sseHandler := middleware.SSEAware(handler)
+	s.sseHandlers = append(s.sseHandlers, struct {
+		pattern string
+		handler http.Handler
+	}{pattern, sseHandler})
+}
+
+// HandleSSEFunc 注册 SSE 端点（函数形式）。
+// 便捷方法，等价于 HandleSSE(pattern, http.HandlerFunc(handler))。
+//
+// 使用方式：
+//
+//	srv.HandleSSEFunc("/events", func(w http.ResponseWriter, r *http.Request) {
+//	    sw, _ := sse.NewWriter(w)
+//	    sw.SendEvent(sse.Event{Data: "hello"})
+//	})
+func (s *Server) HandleSSEFunc(pattern string, handler func(w http.ResponseWriter, r *http.Request)) {
+	s.HandleSSE(pattern, http.HandlerFunc(handler))
 }
 
 // Start 启动服务。
@@ -282,6 +322,11 @@ func (s *Server) deregister(ctx context.Context) error {
 
 // setupRoutes 注册 HTTP 路由。
 func (s *Server) setupRoutes(mux *http.ServeMux) {
+	// 注册 SSE 端点（延迟注册，绕过 JSON 响应包装）
+	for _, sh := range s.sseHandlers {
+		mux.Handle(sh.pattern, sh.handler)
+	}
+
 	// 健康检查端点
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		resp := response.Success(map[string]string{
@@ -303,10 +348,10 @@ func (s *Server) setupRoutes(mux *http.ServeMux) {
 		resp.WriteTo(w)
 	})
 
-	// 指标端点（预留）
+	// 指标端点（Prometheus 格式）
 	mux.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		w.Write([]byte("# Nexus Micro Metrics\n"))
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		_, _ = metrics.DefaultRegistry.WriteTo(w)
 	})
 
 	// 调试端点

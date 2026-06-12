@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "nexus-micro.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+data:
+  service.yaml: |
+    server:
+      name: {{ .Values.config.server.name }}
+      http:
+        port: {{ .Values.service.httpPort }}
+      grpc:
+        port: {{ .Values.service.grpcPort }}
+    governance:
+      ratelimit:
+        rate: {{ .Values.config.governance.ratelimit.rate }}
+        burst: {{ .Values.config.governance.ratelimit.burst }}
+      circuitbreaker:
+        window_size: {{ .Values.config.governance.circuitbreaker.windowSize }}
+        bucket_count: {{ .Values.config.governance.circuitbreaker.bucketCount }}
+        min_requests: {{ .Values.config.governance.circuitbreaker.minRequests }}
+        error_rate: {{ .Values.config.governance.circuitbreaker.errorRate }}
+        sleep_window: {{ .Values.config.governance.circuitbreaker.sleepWindow }}
+      shedding:
+        cpu_threshold: {{ .Values.config.governance.shedding.cpuThreshold }}
+        mem_threshold: {{ .Values.config.governance.shedding.memThreshold }}
+      timeout: {{ .Values.config.governance.timeout }}
+    registry:
+      provider: {{ .Values.config.registry.provider }}
+    log:
+      level: {{ .Values.config.log.level }}
+      format: {{ .Values.config.log.format }}

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nexus-micro.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "nexus-micro.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "nexus-micro.selectorLabels" . | nindent 4 }}
+  ports:
+  - name: http
+    port: {{ .Values.service.httpPort }}
+    targetPort: http
+  - name: grpc
+    port: {{ .Values.service.grpcPort }}
+    targetPort: grpc

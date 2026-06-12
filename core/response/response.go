@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/xyxuliang/nexus-micro/core/contextkeys"
 	"github.com/xyxuliang/nexus-micro/internal/errors"
 )
 
@@ -131,9 +132,16 @@ func codeToHTTPStatus(code int) int {
 
 // WrapHandler 将业务 Handler 包装为统一响应格式的 http.Handler。
 // 业务 Handler 返回 (data, error)，框架自动封装为统一响应。
+// 如果是 SSE 请求（context 中标记了 SSEKey），则跳过 JSON 包装，由 SSE 处理器直接写入。
 func WrapHandler(handler func(ctx context.Context, req interface{}) (interface{}, error)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
+
+		// 如果是 SSE 请求，跳过统一响应包装，由 SSE 处理器直接写入 HTTP 响应
+		if contextkeys.IsSSE(ctx) {
+			_, _ = handler(ctx, nil)
+			return
+		}
 
 		// 提取 request_id
 		requestID := r.Header.Get("X-Request-ID")

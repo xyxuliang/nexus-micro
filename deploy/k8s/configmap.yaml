@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nexus-service-config
+  namespace: nexus
+data:
+  service.yaml: |
+    server:
+      name: nexus-service
+      http:
+        port: 8080
+      grpc:
+        port: 9090
+    governance:
+      ratelimit:
+        rate: 1000
+        burst: 2000
+      circuitbreaker:
+        window_size: 10s
+        bucket_count: 10
+        min_requests: 20
+        error_rate: 0.5
+        sleep_window: 30s
+      shedding:
+        cpu_threshold: 0.9
+        mem_threshold: 0.85
+      timeout: 30s
+    registry:
+      provider: k8s
+    log:
+      level: info
+      format: json

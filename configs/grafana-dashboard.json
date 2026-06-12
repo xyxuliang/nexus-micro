@@ -1,0 +1,178 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+  {
+    "datasource": { "type": "prometheus", "uid": "prometheus" },
+    "fieldConfig": {
+      "defaults": {
+        "color": { "mode": "palette-classic" },
+        "mappings": [],
+        "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 80 }] }
+      }
+    },
+    "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+    "id": 1,
+    "options": {
+      "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" },
+      "tooltip": { "mode": "multi", "sort": "desc" }
+    },
+    "targets": [{ "expr": "rate(http_requests_total[1m])", "legendFormat": "{{method}} {{path}} ({{status}})", "refId": "A" }],
+    "title": "HTTP 请求速率 (QPS)",
+    "type": "timeseries"
+  },
+  {
+    "datasource": { "type": "prometheus", "uid": "prometheus" },
+    "fieldConfig": {
+      "defaults": {
+        "color": { "mode": "thresholds" },
+        "mappings": [],
+        "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] }
+      }
+    },
+    "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+    "id": 2,
+    "options": { "reduceOptions": { "values": false, "calcs": ["lastNotNull"] }, "orientation": "auto" },
+    "targets": [{ "expr": "nexus_circuit_breaker_state", "legendFormat": "{{service}}", "refId": "A" }],
+    "title": "熔断器状态 (0=Closed, 1=Open, 2=HalfOpen)",
+    "type": "stat"
+  },
+  {
+    "datasource": { "type": "prometheus", "uid": "prometheus" },
+    "fieldConfig": {
+      "defaults": {
+        "color": { "mode": "palette-classic" },
+        "custom": { "fillOpacity": 10, "spanNulls": true },
+        "unit": "s"
+      }
+    },
+    "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+    "id": 3,
+    "options": {
+      "legend": { "calcs": ["mean", "p99"], "displayMode": "table", "placement": "bottom" },
+      "tooltip": { "mode": "multi", "sort": "desc" }
+    },
+    "targets": [{ "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[1m]))", "legendFormat": "p99 {{method}} {{path}}", "refId": "A" }, { "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket[1m]))", "legendFormat": "p50 {{method}} {{path}}", "refId": "B" }],
+    "title": "HTTP 请求延迟 (P50 / P99)",
+    "type": "timeseries"
+  },
+  {
+    "datasource": { "type": "prometheus", "uid": "prometheus" },
+    "fieldConfig": {
+      "defaults": {
+        "color": { "mode": "thresholds" },
+        "decimals": 0,
+        "mappings": [],
+        "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 50 }, { "color": "red", "value": 100 }] }
+      }
+    },
+    "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+    "id": 4,
+    "options": { "reduceOptions": { "values": false, "calcs": ["lastNotNull"] }, "orientation": "auto" },
+    "targets": [{ "expr": "http_requests_in_flight", "legendFormat": "Active", "refId": "A" }],
+    "title": "当前活跃请求数",
+    "type": "stat"
+  },
+  {
+    "datasource": { "type": "prometheus", "uid": "prometheus" },
+    "fieldConfig": {
+      "defaults": {
+        "color": { "mode": "palette-classic" }
+      }
+    },
+    "gridPos": { "h": 8, "w": 6, "x": 0, "y": 16 },
+    "id": 5,
+    "options": {
+      "legend": { "displayMode": "table", "placement": "bottom" },
+      "pieType": "pie",
+      "reduceOptions": { "values": true, "calcs": ["lastNotNull"] }
+    },
+    "targets": [{ "expr": "rate(http_requests_total{status=~\"5..\"}[5m])", "legendFormat": "5xx Errors", "refId": "A" }, { "expr": "rate(http_requests_total{status=~\"4..\"}[5m])", "legendFormat": "4xx Errors", "refId": "B" }, { "expr": "rate(http_requests_total{status=~\"2..\"}[5m])", "legendFormat": "2xx Success", "refId": "C" }],
+    "title": "HTTP 状态码分布",
+    "type": "piechart"
+  },
+  {
+    "datasource": { "type": "prometheus", "uid": "prometheus" },
+    "fieldConfig": {
+      "defaults": {
+        "color": { "mode": "palette-classic" }
+      }
+    },
+    "gridPos": { "h": 8, "w": 9, "x": 6, "y": 16 },
+    "id": 6,
+    "options": {
+      "legend": { "displayMode": "table", "placement": "bottom" },
+      "tooltip": { "mode": "multi", "sort": "desc" }
+    },
+    "targets": [{ "expr": "rate(nexus_ratelimit_rejections_total[1m])", "legendFormat": "{{service}}/{{method}}", "refId": "A" }, { "expr": "rate(nexus_shedding_rejections_total[1m])", "legendFormat": "Shedding {{service}}", "refId": "B" }],
+    "title": "治理拒绝速率 (限流 + 降级)",
+    "type": "timeseries"
+  },
+  {
+    "datasource": { "type": "prometheus", "uid": "prometheus" },
+    "fieldConfig": {
+      "defaults": {
+        "color": { "mode": "palette-classic" },
+        "unit": "short"
+      }
+    },
+    "gridPos": { "h": 8, "w": 9, "x": 15, "y": 16 },
+    "id": 7,
+    "options": {
+      "legend": { "displayMode": "table", "placement": "bottom" },
+      "tooltip": { "mode": "multi", "sort": "desc" }
+    },
+    "targets": [{ "expr": "nexus_goroutine_count", "legendFormat": "Goroutines", "refId": "A" }, { "expr": "nexus_active_connections", "legendFormat": "Active Connections", "refId": "B" }],
+    "title": "运行时指标 (Goroutines / 连接数)",
+    "type": "timeseries"
+  },
+  {
+    "datasource": { "type": "prometheus", "uid": "prometheus" },
+    "fieldConfig": {
+      "defaults": {
+        "color": { "mode": "palette-classic" }
+      }
+    },
+    "gridPos": { "h": 6, "w": 24, "x": 0, "y": 24 },
+    "id": 8,
+    "options": {
+      "showHeader": true,
+      "sortBy": [{ "displayName": "Value", "desc": true }]
+    },
+    "targets": [{ "expr": "http_requests_total", "format": "table", "instant": true, "refId": "A" }],
+    "title": "所有 HTTP 指标 (表格视图)",
+    "type": "table"
+  }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "tags": ["nexus-micro", "microservice"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": false, "text": "Prometheus", "value": "prometheus" },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Datasource",
+        "name": "datasource",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Nexus Micro — 服务监控面板",
+  "uid": "nexus-micro-dashboard",
+  "version": 1
+}

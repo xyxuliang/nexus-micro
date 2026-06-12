@@ -1,0 +1,13 @@
+apiVersion: v2
+name: nexus-micro
+description: Helm chart for Nexus Micro framework services
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - microservice
+  - gateway
+  - go
+home: https://github.com/xyxuliang/nexus-micro
+maintainers:
+  - name: Nexus Micro Team

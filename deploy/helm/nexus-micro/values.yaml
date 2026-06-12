@@ -1,0 +1,66 @@
+# Default values for Nexus Micro Helm chart
+replicaCount: 3
+
+image:
+  repository: nexus-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  httpPort: 8080
+  grpcPort: 9090
+
+# Service configuration
+config:
+  server:
+    name: nexus-service
+  governance:
+    ratelimit:
+      rate: 1000
+      burst: 2000
+    circuitbreaker:
+      windowSize: 10s
+      bucketCount: 10
+      minRequests: 20
+      errorRate: 0.5
+      sleepWindow: 30s
+    shedding:
+      cpuThreshold: 0.9
+      memThreshold: 0.85
+    timeout: 30s
+  registry:
+    provider: k8s
+  log:
+    level: info
+    format: json
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+ingress:
+  enabled: false
+  className: nginx
+  hosts:
+    - host: api.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+monitoring:
+  prometheus:
+    enabled: true
+    path: /metrics
+    port: 8080

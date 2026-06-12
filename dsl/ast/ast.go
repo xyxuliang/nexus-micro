@@ -58,6 +58,7 @@ type Handler struct {
 	Method     string // HTTP 方法（GET/POST/PUT/DELETE）
 	Path       string // HTTP 路由（如 "/users", "/users/:id"）
 	HasGRPC    bool   // 是否同时生成 gRPC 接口
+	IsSSE      bool   // 是否为 Server-Sent Events 端点（流式推送）
 	Request    *Type  // 请求类型
 	Response   *Type  // 响应类型
 	Middleware []string // 接口级中间件
