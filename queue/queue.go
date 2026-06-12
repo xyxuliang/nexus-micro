@@ -10,16 +10,18 @@ import (
 
 // Task 表示一个异步任务。
 type Task struct {
-	ID         string    // 任务 ID
-	Type       string    // 任务类型
-	Payload    []byte    // 任务数据（JSON 序列化）
-	MaxRetry   int       // 最大重试次数
-	Priority   int       // 优先级（越大优先级越高）
-	CreatedAt  time.Time // 创建时间
+	ID        string                 // 任务 ID
+	Type      string                 // 任务类型
+	Queue     string                 // 目标队列名（如 "critical", "default", "low"）
+	Payload   interface{}            // 任务数据（任意类型，会被 JSON 序列化）
+	MaxRetry  int                    // 最大重试次数
+	Priority  int                    // 优先级（越大优先级越高）
+	CreatedAt time.Time              // 创建时间
 }
 
 // Handler 任务处理器函数。
-type Handler func(ctx context.Context, task *Task) error
+// payload 是反序列化后的任务数据。
+type Handler func(ctx context.Context, payload interface{}) error
 
 // Queue 任务队列接口。
 type Queue interface {
@@ -30,25 +32,26 @@ type Queue interface {
 	Delay(ctx context.Context, task *Task, delay time.Duration) error
 
 	// Retry 重试一个失败的任务。
-	Retry(ctx context.Context, taskID string) error
+	Retry(ctx context.Context, task *Task) error
 
 	// Register 注册任务处理器。
-	Register(taskType string, handler Handler) error
+	Register(taskType string, handler Handler)
 
-	// Run 启动 worker 开始处理任务。
-	Run(ctx context.Context) error
+	// Run 启动 worker 开始处理任务（阻塞）。
+	Run() error
 
-	// Shutdown 关闭队列。
+	// Shutdown 优雅关闭队列。
 	Shutdown(ctx context.Context) error
 }
 
 // NewTask 创建一个新任务。
-func NewTask(taskType string, payload []byte) *Task {
+func NewTask(taskType string, payload interface{}) *Task {
 	return &Task{
-		Type:    taskType,
-		Payload: payload,
-		MaxRetry: 3,
-		Priority: 5,
+		Type:      taskType,
+		Payload:   payload,
+		Queue:     "default",
+		MaxRetry:  3,
+		Priority:  5,
 		CreatedAt: time.Now(),
 	}
 }
@@ -64,3 +67,27 @@ func (t *Task) WithPriority(p int) *Task {
 	t.Priority = p
 	return t
 }
+
+// WithQueue 设置目标队列名。
+func (t *Task) WithQueue(q string) *Task {
+	t.Queue = q
+	return t
+}
+
+// WithID 设置任务 ID。
+func (t *Task) WithID(id string) *Task {
+	t.ID = id
+	return t
+}
+
+// 编译期接口断言
+var _ Queue = (*noopQueue)(nil)
+
+type noopQueue struct{}
+
+func (q *noopQueue) Dispatch(ctx context.Context, task *Task) error            { return nil }
+func (q *noopQueue) Delay(ctx context.Context, task *Task, delay time.Duration) error { return nil }
+func (q *noopQueue) Retry(ctx context.Context, task *Task) error               { return nil }
+func (q *noopQueue) Register(taskType string, handler Handler)                 {}
+func (q *noopQueue) Run() error                                                { return nil }
+func (q *noopQueue) Shutdown(ctx context.Context) error                        { return nil }

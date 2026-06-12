@@ -1,0 +1,7 @@
+server:
+  name: payment-service
+  port: 8084
+etcd:
+  endpoints:
+    - localhost:2379
+  ttl: 30

@@ -1,0 +1,11 @@
+# gRPC 网关配置
+# HTTP REST 端口 8889（curl 调用）
+# gRPC 端口 8890（grpcurl 调用）
+server:
+  name: apigw-rpc
+  port: 8889
+  grpc_port: 8890
+
+etcd:
+  endpoints:
+    - localhost:2379

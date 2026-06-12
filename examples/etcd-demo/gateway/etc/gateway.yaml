@@ -1,0 +1,42 @@
+server:
+  name: apigw
+  port: 8888
+
+etcd:
+  endpoints:
+    - localhost:2379
+
+proxy:
+  timeout: 5s
+  retries: 3
+
+routes:
+  - name: Home
+    path: /home
+    method: GET
+    prefix: /api/v1
+    upstream: home-service
+
+  - name: CreateUser
+    path: /users
+    method: POST
+    prefix: /api/v1
+    upstream: user-service
+
+  - name: GetUser
+    path: /users/:id
+    method: GET
+    prefix: /api/v1
+    upstream: user-service
+
+  - name: CreatePayment
+    path: /payments
+    method: POST
+    prefix: /api/v1
+    upstream: payment-service
+
+  - name: GetPayment
+    path: /payments/:id
+    method: GET
+    prefix: /api/v1
+    upstream: payment-service

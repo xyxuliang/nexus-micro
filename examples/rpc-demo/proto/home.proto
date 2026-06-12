@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package home;
+
+option go_package = "github.com/xyxuliang/nexus-micro/examples/rpc-demo/pkg/pb/home;homepb";
+
+// Banner 横幅
+message Banner {
+  int64  id    = 1;
+  string title = 2;
+  string image = 3;
+  string url   = 4;
+  int32  sort  = 5;
+}
+
+// 获取首页
+message GetHomeReq {}
+
+message GetHomeResp {
+  repeated Banner banners = 1;
+  string           message = 2;
+}
+
+// HomeService 首页服务
+service HomeService {
+  rpc GetHome(GetHomeReq) returns (GetHomeResp);
+}

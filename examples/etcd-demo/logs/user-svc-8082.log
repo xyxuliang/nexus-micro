@@ -1,0 +1,13 @@
+2026/06/12 19:30:02 [user-service] registered to etcd (localhost:8082)
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /health                   --> github.com/xyxuliang/nexus-micro/examples/etcd-demo/user-service/internal/router.Register.func1 (5 handlers)
+[GIN-debug] POST   /api/v1/users             --> github.com/xyxuliang/nexus-micro/examples/etcd-demo/user-service/internal/router.Register.(*UserHandler).CreateUser.func2 (5 handlers)
+[GIN-debug] GET    /api/v1/users/:id         --> github.com/xyxuliang/nexus-micro/examples/etcd-demo/user-service/internal/router.Register.(*UserHandler).GetUser.func3 (5 handlers)
+2026/06/12 19:30:02 [user-service] listening on :8082
+2026/06/12 19:30:02   GET    /health
+2026/06/12 19:30:02   GET    /api/v1/users/:id
+2026/06/12 19:30:02   POST   /api/v1/users
+2026/06/12 19:30:03 [svc] GET /health 200 36.917µs rid=8394b356a7b75b34

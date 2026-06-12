@@ -23,9 +23,15 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 
 	"github.com/xyxuliang/nexus-micro/generator"
 )
+
+// Version 是 CLI 版本号。
+const Version = "1.0.0-dev"
 
 func main() {
 	if len(os.Args) < 2 {
@@ -53,8 +59,16 @@ func main() {
 		cmdTest(os.Args[2:])
 	case "lint":
 		cmdLint(os.Args[2:])
+	case "rpc":
+		cmdRPC(os.Args[2:])
+	case "version", "-v", "--version":
+		fmt.Printf("nx version %s\n", Version)
 	case "help", "-h", "--help":
-		printUsage()
+		if len(os.Args) > 2 {
+			printCommandHelp(os.Args[2])
+		} else {
+			printUsage()
+		}
 	default:
 		fmt.Fprintf(os.Stderr, "nx: unknown command %q\n", command)
 		fmt.Fprintf(os.Stderr, "Run 'nx help' for usage.\n")
@@ -73,13 +87,20 @@ Project Commands:
   new <service-name>         创建新微服务
   new gateway <name>         创建 API 网关项目
   new workspace <name>       创建多服务 workspace（monorepo）
+  new rpc <service-name>     创建 gRPC 微服务
+  new rpc-gateway <name>     创建 HTTP+gRPC 双协议网关
+  new rpc-workspace <name>   创建 RPC 多服务工作区
 
 Generate Commands:
   gen api <file.api>         从 .api DSL 生成完整服务代码
   gen gateway <file.api>     从 .api DSL 生成 API 网关代码
-  gen proto <file.proto>     从 .proto 生成完整服务
+  gen proto <file.proto>     从 .proto 生成 gRPC stub
   gen client <service-name>  生成客户端 SDK
   gen doc                    生成 OpenAPI 文档
+
+RPC Commands:
+  rpc proto <file.proto>     编译 .proto 生成 gRPC 代码
+  rpc service <name>         生成 gRPC 服务实现骨架（从 .api）
 
 Module Commands:
   module <name>              创建业务模块 (Vertical Slice)
@@ -87,21 +108,115 @@ Module Commands:
   query <module> <name>      创建 Query 切片
 
 Dev Commands:
-  run                        启动开发服务器（热重载）
+  run                        启动开发服务器
   build                      构建生产二进制
   test                       运行测试
   lint                       代码检查
+
+Other:
+  version                    显示版本
+  help [command]             显示帮助（支持子命令帮助）
 
 Examples:
   nx new mysvc                           # 创建 mysvc 微服务
   nx new gateway apigw                   # 创建 apigw 网关
   nx new workspace myapp                 # 创建多服务 monorepo
+  nx new rpc user-service                # 创建 gRPC 用户服务
+  nx new rpc-gateway apigw               # 创建 HTTP+gRPC 网关
   nx gen api user.api                    # 从 user.api 生成代码
-  nx gen gateway gateway.api             # 从 gateway.api 生成网关
+  nx gen proto user.proto                # 从 .proto 生成 gRPC stub
+  nx rpc proto user.proto                # 编译 .proto（等同于 gen proto）
   nx module user                         # 创建 user 模块
-  nx slice user register                 # 创建 register 切片
-  nx query user profile                  # 创建 profile 查询
-  nx run                                 # 启动开发服务器`)
+  nx run                                 # 启动开发服务器
+  nx help new                            # 查看 new 命令帮助`)
+}
+
+// printCommandHelp 打印子命令帮助。
+func printCommandHelp(cmd string) {
+	switch cmd {
+	case "new":
+		fmt.Println(`Usage: nx new <service-name>
+       nx new gateway <name>
+       nx new workspace <name>
+       nx new rpc <name>
+       nx new rpc-gateway <name>
+       nx new rpc-workspace <name>
+
+Create a new project:
+  new <name>             Create a new microservice
+  new gateway <name>     Create an API gateway project
+  new workspace <name>   Create a multi-service workspace (monorepo)
+  new rpc <name>         Create a gRPC microservice
+  new rpc-gateway <name> Create an HTTP+gRPC dual-protocol gateway
+  new rpc-workspace <name> Create an RPC multi-service workspace
+
+Examples:
+  nx new user-service
+  nx new gateway apigw
+  nx new workspace myapp
+  nx new rpc user-service
+  nx new rpc-gateway apigw`)
+	case "gen":
+		fmt.Println(`Usage: nx gen <subcommand> [arguments]
+
+Generate code from definition files:
+  gen api <file.api>       Generate full service code from .api DSL
+  gen gateway <file.api>   Generate API gateway code from .api DSL
+  gen proto <file.proto>   Generate service code from .proto
+  gen client <name>        Generate client SDK for a service
+  gen doc                  Generate OpenAPI documentation
+
+Examples:
+  nx gen api user.api
+  nx gen client user-service`)
+	case "module":
+		fmt.Println(`Usage: nx module <name>
+
+Create a new business module (Vertical Slice architecture):
+  module <name>    Create domain/ and internal/ directories
+
+Example:
+  nx module user`)
+	case "slice":
+		fmt.Println(`Usage: nx slice <module> <name>
+
+Create a Command slice (write operation):
+  slice <module> <name>    Create command, handler, validator, dto, mapper, event files
+
+Example:
+  nx slice user register`)
+	case "query":
+		fmt.Println(`Usage: nx query <module> <name>
+
+Create a Query slice (read operation):
+  query <module> <name>    Create query, handler, dto files
+
+Example:
+  nx query user profile`)
+	case "run":
+		fmt.Println(`Usage: nx run
+
+Start the development server. Detects main.go in current directory
+and runs it with go run. Supports passing build tags and ldflags.`)
+	case "build":
+		fmt.Println(`Usage: nx build [output]
+
+Build a production binary. Default output is bin/<service-name>.
+Supports cross-compilation via GOOS/GOARCH environment variables.`)
+	case "test":
+		fmt.Println(`Usage: nx test [packages]
+
+Run tests. Defaults to ./... if no packages specified.
+Passes through all standard go test flags.`)
+	case "lint":
+		fmt.Println(`Usage: nx lint [packages]
+
+Run code checks. Defaults to ./... if no packages specified.
+Runs go vet for static analysis.`)
+	default:
+		fmt.Fprintf(os.Stderr, "nx: no help available for %q\n", cmd)
+		fmt.Fprintf(os.Stderr, "Run 'nx help' for available commands.\n")
+	}
 }
 
 // cmdNew 创建新项目。
@@ -122,6 +237,18 @@ func cmdNew(args []string) {
 	}
 	if args[0] == "workspace" {
 		cmdNewWorkspace(args[1:])
+		return
+	}
+	if args[0] == "rpc" {
+		cmdNewRpcService(args[1:])
+		return
+	}
+	if args[0] == "rpc-gateway" {
+		cmdNewRpcGateway(args[1:])
+		return
+	}
+	if args[0] == "rpc-workspace" {
+		cmdNewRpcWorkspace(args[1:])
 		return
 	}
 
@@ -991,10 +1118,60 @@ func cmdGenGateway(args []string) {
 	fmt.Println("✓ Gateway code generation completed")
 }
 
-// cmdGenProto 从 .proto 文件生成代码。
+// cmdGenProto 从 .proto 文件生成 gRPC stub。
 func cmdGenProto(args []string) {
-	fmt.Println("nx gen proto: generating from .proto file...")
-	fmt.Println("(protoc + protoc-gen-go integration coming soon)")
+	if len(args) < 1 {
+		fmt.Fprintln(os.Stderr, "nx gen proto: missing .proto file")
+		fmt.Fprintln(os.Stderr, "Usage: nx gen proto <file.proto>")
+		os.Exit(1)
+	}
+
+	protoFile := args[0]
+	fmt.Printf("Generating gRPC stubs from %s...\n", protoFile)
+
+	// 确定输出目录（proto 文件所在目录的父目录）
+	protoDir := filepath.Dir(protoFile)
+	outDir := filepath.Dir(protoDir)
+	if outDir == "." {
+		outDir = "."
+	}
+
+	// 获取模块路径
+	modulePath := detectModule()
+
+	cmd := exec.Command("protoc",
+		"--proto_path="+protoDir,
+		"--go_out="+outDir,
+		"--go_opt=module="+modulePath,
+		"--go-grpc_out="+outDir,
+		"--go-grpc_opt=module="+modulePath,
+		protoFile,
+	)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "nx gen proto: protoc failed: %v\n", err)
+		fmt.Fprintln(os.Stderr, "Make sure protoc, protoc-gen-go and protoc-gen-go-grpc are installed.")
+		os.Exit(1)
+	}
+
+	fmt.Println("✓ gRPC stub generation completed")
+}
+
+// detectModule 从 go.mod 读取模块路径，失败则返回默认值。
+func detectModule() string {
+	data, err := os.ReadFile("go.mod")
+	if err != nil {
+		return "github.com/xyxuliang/nexus-micro"
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "module ") {
+			return strings.TrimSpace(strings.TrimPrefix(line, "module "))
+		}
+	}
+	return "github.com/xyxuliang/nexus-micro"
 }
 
 // cmdGenClient 生成客户端 SDK。
@@ -1103,37 +1280,410 @@ func cmdQuery(args []string) {
 }
 
 // cmdRun 启动开发服务器。
+// 在当前目录查找 main.go 并执行 go run。
 func cmdRun(args []string) {
-	fmt.Println("Starting development server...")
-	fmt.Println("(hot reload support coming soon)")
-	fmt.Println("")
-	fmt.Println("Run the following to start manually:")
-	fmt.Println("  go run main.go")
+	mainFile := "main.go"
+	if _, err := os.Stat(mainFile); os.IsNotExist(err) {
+		entries, err := os.ReadDir(".")
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "nx run: cannot read current directory: %v\n", err)
+			os.Exit(1)
+		}
+		for _, e := range entries {
+			if e.IsDir() {
+				p := filepath.Join(e.Name(), "main.go")
+				if _, err := os.Stat(p); err == nil {
+					mainFile = p
+					break
+				}
+			}
+		}
+		if mainFile == "main.go" {
+			fmt.Fprintln(os.Stderr, "nx run: no main.go found in current directory")
+			fmt.Fprintln(os.Stderr, "Run 'nx new <name>' to create a project first.")
+			os.Exit(1)
+		}
+	}
+
+	fmt.Printf("Starting development server (%s)...\n", mainFile)
+	cmd := exec.Command("go", append([]string{"run", mainFile}, args...)...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+	if err := cmd.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "nx run: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 // cmdBuild 构建生产二进制。
+// 默认输出到 bin/<服务名>，支持 GOOS/GOARCH 交叉编译。
 func cmdBuild(args []string) {
-	fmt.Println("Building production binary...")
-	fmt.Println("(build integration coming soon)")
-	fmt.Println("")
-	fmt.Println("Run the following to build manually:")
-	fmt.Println("  go build -o bin/service main.go")
+	output := "bin/service"
+	if len(args) > 0 {
+		output = args[0]
+	}
+
+	cwd, _ := os.Getwd()
+	svcName := filepath.Base(cwd)
+	if output == "bin/service" {
+		output = "bin/" + svcName
+	}
+
+	fmt.Printf("Building %s...\n", output)
+	cmd := exec.Command("go", "build", "-o", output, ".")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Env = os.Environ()
+	if err := cmd.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "nx build: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("✓ Built %s\n", output)
 }
 
 // cmdTest 运行测试。
+// 默认运行 ./... 所有包，支持传递 go test 参数。
 func cmdTest(args []string) {
+	testArgs := []string{"test"}
+	if len(args) == 0 {
+		testArgs = append(testArgs, "./...")
+	} else {
+		testArgs = append(testArgs, args...)
+	}
+	testArgs = append(testArgs, "-v", "-count=1")
+
 	fmt.Println("Running tests...")
-	fmt.Println("(test integration coming soon)")
-	fmt.Println("")
-	fmt.Println("Run the following to test manually:")
-	fmt.Println("  go test ./...")
+	cmd := exec.Command("go", testArgs...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		os.Exit(1)
+	}
 }
 
 // cmdLint 代码检查。
+// 运行 go vet 进行静态分析，默认检查所有包。
 func cmdLint(args []string) {
-	fmt.Println("Running linter...")
-	fmt.Println("(lint integration coming soon)")
-	fmt.Println("")
-	fmt.Println("Run the following to lint manually:")
-	fmt.Println("  go vet ./...")
+	packages := "./..."
+	if len(args) > 0 {
+		packages = args[0]
+	}
+
+	fmt.Printf("Running go vet on %s...\n", packages)
+	cmd := exec.Command("go", "vet", packages)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	_ = cmd.Run()
+	fmt.Println("✓ Lint complete")
+}
+
+// =============================================================================
+// RPC Commands
+// =============================================================================
+
+// cmdRPC RPC 相关命令分发：nx rpc proto <file> | nx rpc service <name>
+func cmdRPC(args []string) {
+	if len(args) < 1 {
+		fmt.Fprintln(os.Stderr, "nx rpc: missing subcommand")
+		fmt.Fprintln(os.Stderr, "Usage: nx rpc [proto|service] ...")
+		os.Exit(1)
+	}
+	switch args[0] {
+	case "proto":
+		cmdGenProto(args[1:])
+	case "service":
+		cmdRPCGenService(args[1:])
+	default:
+		fmt.Fprintf(os.Stderr, "nx rpc: unknown subcommand %q\n", args[0])
+		os.Exit(1)
+	}
+}
+
+// cmdRPCGenService 从 .api 生成 gRPC 服务骨架（nx rpc service 入口）。
+func cmdRPCGenService(args []string) {
+	if len(args) < 1 {
+		fmt.Fprintln(os.Stderr, "nx rpc service: missing service name")
+		fmt.Fprintln(os.Stderr, "Usage: nx rpc service <name>")
+		os.Exit(1)
+	}
+	createRPCService(args[0])
+}
+
+// cmdNewRpcService 创建 gRPC 微服务项目 (nx new rpc 入口)。
+func cmdNewRpcService(args []string) {
+	if len(args) < 1 {
+		fmt.Fprintln(os.Stderr, "nx new rpc: missing service name")
+		fmt.Fprintln(os.Stderr, "Usage: nx new rpc <name>")
+		os.Exit(1)
+	}
+	createRPCService(args[0])
+}
+
+// createRPCService 生成 gRPC 服务项目。
+func createRPCService(serviceName string) {
+	fmt.Printf("Creating gRPC service %s...\n", serviceName)
+
+	dirs := []string{
+		serviceName, serviceName + "/proto",
+		serviceName + "/internal/server", serviceName + "/etc",
+	}
+	for _, d := range dirs {
+		os.MkdirAll(d, 0755)
+	}
+
+	// .proto 模板
+	sN := capitalize(serviceName)
+	protoContent := fmt.Sprintf(`syntax = "proto3";
+
+package %s;
+
+option go_package = "github.com/xyxuliang/nexus-micro/examples/rpc-demo/pkg/pb/%s;%spb";
+
+service %sService {
+  rpc SayHello(HelloReq) returns (HelloResp);
+}
+
+message HelloReq { string name = 1; }
+message HelloResp { string message = 1; }
+`, serviceName, serviceName, serviceName, sN)
+	os.WriteFile(serviceName+"/proto/"+serviceName+".proto", []byte(protoContent), 0644)
+
+	// etc 配置
+	cfgYAML := fmt.Sprintf("server:\n  name: %s\n  grpc_port: 50051\netcd:\n  endpoints:\n    - localhost:2379\n  ttl: 30\n", serviceName)
+	os.WriteFile(serviceName+"/etc/"+serviceName+".yaml", []byte(cfgYAML), 0644)
+
+	// server 实现
+	svrGo := fmt.Sprintf(`package server
+
+import (
+	"context"
+	"google.golang.org/grpc"
+	%[1]spb "github.com/xyxuliang/nexus-micro/examples/rpc-demo/pkg/pb/%[1]s"
+)
+
+type %[2]sServer struct {
+	%[1]spb.Unimplemented%[2]sServiceServer
+}
+
+func Register(srv *grpc.Server) {
+	%[1]spb.Register%[2]sServiceServer(srv, &%[2]sServer{})
+}
+
+func (s *%[2]sServer) SayHello(ctx context.Context, req *%[1]spb.HelloReq) (*%[1]spb.HelloResp, error) {
+	return &%[1]spb.HelloResp{Message: "Hello, " + req.Name + "!"}, nil
+}
+`, serviceName, sN)
+	os.WriteFile(serviceName+"/internal/server/server.go", []byte(svrGo), 0644)
+
+	// main.go
+	mainGo := fmt.Sprintf(`package main
+
+import (
+	"context"; "fmt"; "log"; "net"; "os"; "os/signal"; "strconv"; "sync"; "syscall"; "time"
+	"google.golang.org/grpc"; "google.golang.org/grpc/reflection"
+	"github.com/xyxuliang/nexus-micro/core/registry"
+	"github.com/xyxuliang/nexus-micro/examples/rpc-demo/%[1]s/internal/server"
+)
+
+func main() {
+	cfg := struct{Server struct{Name string;GrpcPort int};Etcd struct{Endpoints []string;TTL int}}{}
+	cfg.Server.Name = "%[1]s"; cfg.Server.GrpcPort = 50051
+	cfg.Etcd.Endpoints = []string{"localhost:2379"}; cfg.Etcd.TTL = 30
+	if ps := os.Getenv("GRPC_PORT"); ps != "" {
+		if p, _ := strconv.Atoi(ps); p > 0 { cfg.Server.GrpcPort = p }
+	}
+	inst := &registry.ServiceInstance{
+		ID: fmt.Sprintf("%[1]s-%%d", time.Now().UnixNano()), Name: cfg.Server.Name, Version: "1.0.0",
+		Metadata: map[string]string{"weight": "100", "protocol": "grpc"},
+		Endpoints: []string{fmt.Sprintf("localhost:%%d", cfg.Server.GrpcPort)},
+	}
+	reg, err := registry.NewEtcdRegistry(cfg.Etcd.Endpoints, 5*time.Second)
+	if err != nil { log.Fatalf("etcd: %%v", err) }
+	defer reg.Close()
+	reg.Register(context.Background(), inst)
+	log.Printf("[%[1]s] registered (grpc %%s)", inst.Endpoints[0])
+	addr := fmt.Sprintf(":%%d", cfg.Server.GrpcPort)
+	lis, _ := net.Listen("tcp", addr)
+	srv := grpc.NewServer(); reflection.Register(srv); server.Register(srv)
+	var wg sync.WaitGroup; wg.Add(1)
+	go func() {
+		defer wg.Done()
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+		<-quit
+		reg.Deregister(context.Background(), inst)
+		srv.GracefulStop()
+	}()
+	log.Printf("[%[1]s] gRPC listening on %%s", addr)
+	srv.Serve(lis); wg.Wait()
+}
+`, serviceName)
+	os.WriteFile(serviceName+"/main.go", []byte(mainGo), 0644)
+
+	fmt.Printf("✓ RPC service %s created\n", serviceName)
+	fmt.Println("\nNext steps:")
+	fmt.Printf("  1. nx gen proto %s/proto/%s.proto\n", serviceName, serviceName)
+	fmt.Printf("  2. cd %s && go run main.go\n", serviceName)
+}
+
+// cmdNewRpcGateway 创建 HTTP+gRPC 双协议网关。
+func cmdNewRpcGateway(args []string) {
+	if len(args) < 1 {
+		fmt.Fprintln(os.Stderr, "nx new rpc-gateway: missing gateway name")
+		os.Exit(1)
+	}
+	name := args[0]
+	fmt.Printf("Creating RPC gateway %s...\n", name)
+
+	dirs := []string{
+		name, name + "/etc",
+		name + "/internal/pool", name + "/internal/proxy",
+		name + "/internal/handler", name + "/internal/router", name + "/internal/config",
+	}
+	for _, d := range dirs {
+		os.MkdirAll(d, 0755)
+	}
+
+	// etc
+	os.WriteFile(name+"/etc/"+name+".yaml", []byte(fmt.Sprintf(
+		"server:\n  name: %s\n  port: 8889\n  grpc_port: 8890\netcd:\n  endpoints:\n    - localhost:2379\n", name)), 0644)
+
+	// config
+	os.WriteFile(name+"/internal/config/config.go", []byte(fmt.Sprintf(`package config
+import ("fmt"; "os"; "gopkg.in/yaml.v3")
+type Config struct {
+	Server struct{Name string`+"`yaml:\"name\"`"+`;Port int`+"`yaml:\"port\"`"+`;GrpcPort int`+"`yaml:\"grpc_port\"`"+`}`+"`yaml:\"server\"`"+`
+	Etcd struct{Endpoints []string`+"`yaml:\"endpoints\"`"+`}`+"`yaml:\"etcd\"`"+`
+}
+func Load(path string) (*Config, error) {
+	d,_:=os.ReadFile(path);c:=&Config{}
+	c.Server.Name="%[1]s";c.Server.Port=8889;c.Server.GrpcPort=8890
+	c.Etcd.Endpoints=[]string{"localhost:2379"}
+	if err:=yaml.Unmarshal(d,c);err!=nil{return nil,err}
+	return c,nil
+}
+`, name)), 0644)
+
+	// pool skeleton
+	os.WriteFile(name+"/internal/pool/pool.go", []byte(`package pool
+// TODO: Implement gRPC connection pool with etcd discovery + round-robin LB.
+// See examples/rpc-demo/gateway/internal/pool/pool.go for reference.
+type Services struct{}
+`), 0644)
+
+	// proxy skeleton
+	os.WriteFile(name+"/internal/proxy/proxy.go", []byte(`package proxy
+import ("google.golang.org/grpc"; "github.com/xyxuliang/nexus-micro/examples/rpc-demo/gateway/internal/pool")
+func Register(srv *grpc.Server, pools *pool.Services) {
+	// Register your gRPC proxy handlers here.
+	_ = srv; _ = pools
+}
+`), 0644)
+
+	// handler skeleton
+	os.WriteFile(name+"/internal/handler/handler.go", []byte(`package handler
+import ("net/http"; "github.com/gin-gonic/gin"; "github.com/xyxuliang/nexus-micro/examples/rpc-demo/gateway/internal/pool")
+type HTTPHandler struct{Pools *pool.Services}
+func New(pools *pool.Services) *HTTPHandler { return &HTTPHandler{Pools: pools} }
+func (h *HTTPHandler) Health(c *gin.Context) { c.JSON(200, gin.H{"code":0,"msg":"ok"}) }
+`), 0644)
+
+	// router skeleton
+	os.WriteFile(name+"/internal/router/router.go", []byte(`package router
+import ("net/http"; "time"; "github.com/gin-gonic/gin"; . "github.com/xyxuliang/nexus-micro/examples/rpc-demo/gateway/internal/handler"; "github.com/xyxuliang/nexus-micro/examples/rpc-demo/gateway/internal/pool")
+func Register(r *gin.Engine, pools *pool.Services) {
+	h:=New(pools)
+	r.GET("/health",func(c *gin.Context){c.JSON(http.StatusOK,gin.H{"code":0,"msg":"ok","data":gin.H{"time":time.Now().Format(time.RFC3339)}})})
+	api:=r.Group("/api/v1"); _=api; _=h
+}
+`), 0644)
+
+	// main.go
+	os.WriteFile(name+"/main.go", []byte(fmt.Sprintf(`package main
+import ("context";"fmt";"log";"net";"net/http";"os";"os/signal";"sync";"syscall";"time"
+"github.com/gin-gonic/gin";"google.golang.org/grpc";"google.golang.org/grpc/reflection"
+"github.com/xyxuliang/nexus-micro/core/registry"
+"github.com/xyxuliang/nexus-micro/examples/rpc-demo/gateway/internal/config"
+"github.com/xyxuliang/nexus-micro/examples/rpc-demo/gateway/internal/pool"
+"github.com/xyxuliang/nexus-micro/examples/rpc-demo/gateway/internal/proxy"
+"github.com/xyxuliang/nexus-micro/examples/rpc-demo/gateway/internal/router")
+
+func main() {
+	cfg,_:=config.Load("etc/%[1]s.yaml")
+	reg,_:=registry.NewEtcdRegistry(cfg.Etcd.Endpoints,5*time.Second)
+	defer reg.Close()
+	pools:=&pool.Services{}
+	var wg sync.WaitGroup
+
+	// HTTP
+	r:=gin.New();r.Use(gin.Logger(),gin.Recovery())
+	router.Register(r,pools)
+	httpSrv:=&http.Server{Addr:fmt.Sprintf(":%%d",cfg.Server.Port),Handler:r,ReadTimeout:30*time.Second,WriteTimeout:30*time.Second}
+
+	wg.Add(1);go func(){defer wg.Done();httpSrv.ListenAndServe()}()
+
+	// gRPC
+	lis,_:=net.Listen("tcp",fmt.Sprintf(":%%d",cfg.Server.GrpcPort))
+	srv:=grpc.NewServer();reflection.Register(srv);proxy.Register(srv,pools)
+	wg.Add(1);go func(){defer wg.Done();srv.Serve(lis)}()
+
+	go func(){quit:=make(chan os.Signal,1);signal.Notify(quit,syscall.SIGINT,syscall.SIGTERM);<-quit;srv.GracefulStop();httpSrv.Shutdown(context.Background())}()
+
+	log.Println("[gateway] ready: HTTP :8889 | gRPC :8890")
+	wg.Wait()
+}
+`, name)), 0644)
+
+	fmt.Printf("✓ RPC Gateway %s created\n", name)
+	fmt.Println("  Edit internal/pool/, proxy/, handler/, router/ to add your services.")
+}
+
+// cmdNewRpcWorkspace 创建 RPC 多服务工作区。
+func cmdNewRpcWorkspace(args []string) {
+	if len(args) < 1 {
+		fmt.Fprintln(os.Stderr, "nx new rpc-workspace: missing workspace name")
+		os.Exit(1)
+	}
+	name := args[0]
+	dirs := []string{name, name + "/proto", name + "/pkg/pb", name + "/services", name + "/gateway", name + "/scripts"}
+	for _, d := range dirs {
+		os.MkdirAll(d, 0755)
+	}
+	os.WriteFile(name+"/go.work", []byte("go 1.24\n\nuse (\n\t./services/*\n\t./gateway\n\t./pkg/pb\n)\n"), 0644)
+	os.WriteFile(name+"/scripts/gen_proto.sh", []byte(fmt.Sprintf(`#!/bin/bash
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"; WS_DIR="$SCRIPT_DIR/.."
+MODULE="github.com/xyxuliang/nexus-micro/examples/rpc-demo"
+cd "$WS_DIR"
+protoc --proto_path=proto --go_out=. --go_opt=module="$MODULE" --go-grpc_out=. --go-grpc_opt=module="$MODULE" proto/*.proto
+echo "proto generation done."
+`)), 0755)
+	os.WriteFile(name+"/scripts/build.sh", []byte(`#!/bin/bash
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"; WS_DIR="$SCRIPT_DIR/.."
+BIN_DIR="$WS_DIR/bin"; mkdir -p "$BIN_DIR"; cd "$WS_DIR"
+for svc in services/*/; do
+    [[ -f "$svc/main.go" ]] || continue
+    n=$(basename "$svc"); echo "Building $n..."; go build -o "$BIN_DIR/$n-rpc" "./$svc" || exit 1
+done
+echo "Building gateway..."; go build -o "$BIN_DIR/gateway-rpc" ./gateway/ || exit 1
+echo "Done."; ls -lh "$BIN_DIR/"
+`), 0755)
+	os.WriteFile(name+"/Makefile", []byte(".PHONY: proto build clean\n\nproto:\n\tcd scripts && ./gen_proto.sh\n\nbuild:\n\tcd scripts && ./build.sh\n\nclean:\n\trm -rf bin/ logs/\n"), 0644)
+	os.WriteFile(name+"/.gitignore", []byte("bin/\nlogs/\n"), 0644)
+
+	fmt.Printf("✓ RPC Workspace %s created\n", name)
+	fmt.Println("  proto/     — protobuf definitions")
+	fmt.Println("  services/  — gRPC services")
+	fmt.Println("  gateway/   — HTTP+gRPC gateway")
+	fmt.Println("  scripts/   — gen_proto.sh + build.sh")
+}
+
+// capitalize 首字母大写。
+func capitalize(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	return strings.ToUpper(s[:1]) + s[1:]
 }

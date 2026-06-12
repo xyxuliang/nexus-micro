@@ -1,0 +1,42 @@
+info (
+    title: "User Service"
+    desc: "用户管理服务"
+    version: "1.0.0"
+)
+
+type (
+    User {
+        Id      int64
+        Name    string
+        Email   string
+        Created int64
+    }
+    CreateUserReq {
+        Name  string
+        Email string
+    }
+    CreateUserResp {
+        Id int64
+    }
+    GetUserReq {
+        Id int64
+    }
+    GetUserResp {
+        User User
+    }
+)
+
+@server(
+    prefix: "/api/v1"
+    service: user
+)
+
+service UserService {
+    @handler CreateUser
+    @doc "创建用户"
+    post /users
+
+    @handler GetUser
+    @doc "获取用户"
+    get /users/:id
+}

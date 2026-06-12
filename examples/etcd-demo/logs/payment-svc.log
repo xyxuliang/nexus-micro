@@ -1,0 +1,13 @@
+2026/06/12 19:30:04 [payment-service] registered to etcd (localhost:8084)
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /health                   --> github.com/xyxuliang/nexus-micro/examples/etcd-demo/payment-service/internal/router.Register.func1 (5 handlers)
+[GIN-debug] POST   /api/v1/payments          --> github.com/xyxuliang/nexus-micro/examples/etcd-demo/payment-service/internal/router.Register.(*PaymentHandler).CreatePayment.func2 (5 handlers)
+[GIN-debug] GET    /api/v1/payments/:id      --> github.com/xyxuliang/nexus-micro/examples/etcd-demo/payment-service/internal/router.Register.(*PaymentHandler).GetPayment.func3 (5 handlers)
+2026/06/12 19:30:04 [payment-service] listening on :8084
+2026/06/12 19:30:04   GET    /health
+2026/06/12 19:30:04   GET    /api/v1/payments/:id
+2026/06/12 19:30:04   POST   /api/v1/payments
+2026/06/12 19:30:05 [svc] GET /health 200 33.833µs rid=c61e6b596ade1019

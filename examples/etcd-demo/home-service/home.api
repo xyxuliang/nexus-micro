@@ -1,0 +1,30 @@
+info (
+    title: "Home Service"
+    desc: "首页服务"
+    version: "1.0.0"
+)
+
+type (
+    Banner {
+        Id    int64
+        Title string
+        Image string
+        Url   string
+        Sort  int
+    }
+    HomeResp {
+        Banners []Banner
+        Message string
+    }
+)
+
+@server(
+    prefix: "/api/v1"
+    service: home
+)
+
+service HomeService {
+    @handler GetHome
+    @doc "获取首页数据"
+    get /home
+}

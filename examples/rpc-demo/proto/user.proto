@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "github.com/xyxuliang/nexus-micro/examples/rpc-demo/pkg/pb/user;userpb";
+
+// User 用户实体
+message User {
+  int64  id      = 1;
+  string name    = 2;
+  string email   = 3;
+  int64  created = 4;
+}
+
+// 创建用户
+message CreateUserReq {
+  string name  = 1;
+  string email = 2;
+}
+
+message CreateUserResp {
+  int64 id = 1;
+}
+
+// 获取用户
+message GetUserReq {
+  int64 id = 1;
+}
+
+message GetUserResp {
+  User user = 1;
+}
+
+// UserService 用户服务
+service UserService {
+  rpc CreateUser(CreateUserReq) returns (CreateUserResp);
+  rpc GetUser(GetUserReq)       returns (GetUserResp);
+}

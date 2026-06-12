@@ -1,0 +1,9 @@
+2026/06/12 20:02:34 [gateway] connected to etcd
+2026/06/12 20:02:34 [pool] user-service connected → localhost:50051 (user-service-1781265754882527000)
+2026/06/12 20:02:34 [pool] home-service connected → localhost:50052 (home-service-1781265754883477000)
+2026/06/12 20:02:34 [pool] payment-service connected → localhost:50053 (payment-service-1781265754884938000)
+2026/06/12 20:02:34 [gateway] gRPC gateway listening on :8889
+2026/06/12 20:02:34 [gateway] services: UserService, HomeService, PaymentService
+2026/06/12 20:02:34 [gateway] test with: grpcurl -plaintext localhost:8889 list
+2026/06/12 20:02:34 
+2026/06/12 20:02:34 [pool] user-service connected → localhost:50054 (user-service-1781265754885443000)

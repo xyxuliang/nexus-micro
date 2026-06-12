@@ -1,0 +1,22 @@
+2026/06/12 19:30:05 [gateway] connected to etcd
+2026/06/12 19:30:05 [gateway] pooled client ready: home-service
+2026/06/12 19:30:05 [gateway] pooled client ready: user-service
+2026/06/12 19:30:05 [gateway] pooled client ready: payment-service
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /health                   --> github.com/xyxuliang/nexus-micro/examples/etcd-demo/gateway/internal/router.Register.func1 (5 handlers)
+2026/06/12 19:30:05 [gateway] routes:
+[GIN-debug] GET    /api/v1/home              --> github.com/xyxuliang/nexus-micro/examples/etcd-demo/gateway/internal/router.Register.(*Handler).Handle.func3 (5 handlers)
+2026/06/12 19:30:05   GET    /api/v1/home → home-service
+[GIN-debug] POST   /api/v1/users             --> github.com/xyxuliang/nexus-micro/examples/etcd-demo/gateway/internal/router.Register.(*Handler).Handle.func3 (5 handlers)
+2026/06/12 19:30:05   POST   /api/v1/users → user-service
+[GIN-debug] GET    /api/v1/users/:id         --> github.com/xyxuliang/nexus-micro/examples/etcd-demo/gateway/internal/router.Register.(*Handler).Handle.func3 (5 handlers)
+2026/06/12 19:30:05   GET    /api/v1/users/:id → user-service
+[GIN-debug] POST   /api/v1/payments          --> github.com/xyxuliang/nexus-micro/examples/etcd-demo/gateway/internal/router.Register.(*Handler).Handle.func3 (5 handlers)
+2026/06/12 19:30:05   POST   /api/v1/payments → payment-service
+[GIN-debug] GET    /api/v1/payments/:id      --> github.com/xyxuliang/nexus-micro/examples/etcd-demo/gateway/internal/router.Register.(*Handler).Handle.func3 (5 handlers)
+2026/06/12 19:30:05   GET    /api/v1/payments/:id → payment-service
+2026/06/12 19:30:05 [gateway] listening on :8888
+2026/06/12 19:57:26 [gateway] shutting down...

@@ -1,0 +1,7 @@
+server:
+  name: user-service
+  port: 8081
+etcd:
+  endpoints:
+    - localhost:2379
+  ttl: 30

@@ -170,6 +170,12 @@ func (p *Provider) Init(ctx context.Context, c *di.Container) error {
 	switch p.config.Provider {
 	case "static", "":
 		reg = NewStaticRegistry(p.config.StaticEndpoints)
+	case "etcd":
+		var err error
+		reg, err = NewEtcdRegistry(p.config.EtcdEndpoints, p.config.TTL)
+		if err != nil {
+			return fmt.Errorf("registry: etcd init failed: %w", err)
+		}
 	default:
 		return fmt.Errorf("registry: unknown provider %s", p.config.Provider)
 	}

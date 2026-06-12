@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package payment;
+
+option go_package = "github.com/xyxuliang/nexus-micro/examples/rpc-demo/pkg/pb/payment;paymentpb";
+
+// Payment 支付记录
+message Payment {
+  int64  id      = 1;
+  int64  order_id = 2;
+  double amount  = 3;
+  string method  = 4;
+  string status  = 5;
+  int64  created = 6;
+}
+
+// 创建支付
+message CreatePaymentReq {
+  int64  order_id = 1;
+  double amount  = 2;
+  string method  = 3;
+}
+
+message CreatePaymentResp {
+  int64  id     = 1;
+  string status = 2;
+}
+
+// 获取支付
+message GetPaymentReq {
+  int64 id = 1;
+}
+
+message GetPaymentResp {
+  Payment payment = 1;
+}
+
+// PaymentService 支付服务
+service PaymentService {
+  rpc CreatePayment(CreatePaymentReq) returns (CreatePaymentResp);
+  rpc GetPayment(GetPaymentReq)       returns (GetPaymentResp);
+}

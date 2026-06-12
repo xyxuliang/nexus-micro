@@ -1,0 +1,80 @@
+# Nexus Micro etcd Demo — Docker Compose
+# 启动 etcd + 多实例用户服务 + API 网关
+#
+# 使用方法:
+#   1. 启动基础设施: docker compose up -d etcd1 etcd2 etcd3
+#   2. 构建并启动服务: docker compose up -d --build
+#   3. 测试: curl http://localhost:8888/health
+#           curl -X POST http://localhost:8888/api/v1/users -d '{"name":"test","email":"test@test.com"}'
+#           curl http://localhost:8888/api/v1/users/1
+
+version: "3.8"
+
+services:
+  # ==========================================================================
+  # etcd 集群（3 节点）
+  # ==========================================================================
+  etcd1:
+    image: quay.io/coreos/etcd:v3.5.18
+    container_name: etcd1
+    command:
+      - etcd
+      - --name=etcd1
+      - --data-dir=/etcd-data
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --advertise-client-urls=http://etcd1:2379
+      - --listen-peer-urls=http://0.0.0.0:2380
+      - --initial-advertise-peer-urls=http://etcd1:2380
+      - --initial-cluster=etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380
+      - --initial-cluster-token=nexus-etcd-cluster
+      - --initial-cluster-state=new
+    ports:
+      - "2379:2379"
+      - "2380:2380"
+    volumes:
+      - etcd1-data:/etcd-data
+
+  etcd2:
+    image: quay.io/coreos/etcd:v3.5.18
+    container_name: etcd2
+    command:
+      - etcd
+      - --name=etcd2
+      - --data-dir=/etcd-data
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --advertise-client-urls=http://etcd2:2379
+      - --listen-peer-urls=http://0.0.0.0:2380
+      - --initial-advertise-peer-urls=http://etcd2:2380
+      - --initial-cluster=etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380
+      - --initial-cluster-token=nexus-etcd-cluster
+      - --initial-cluster-state=new
+    ports:
+      - "2479:2379"
+      - "2480:2380"
+    volumes:
+      - etcd2-data:/etcd-data
+
+  etcd3:
+    image: quay.io/coreos/etcd:v3.5.18
+    container_name: etcd3
+    command:
+      - etcd
+      - --name=etcd3
+      - --data-dir=/etcd-data
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --advertise-client-urls=http://etcd3:2379
+      - --listen-peer-urls=http://0.0.0.0:2380
+      - --initial-advertise-peer-urls=http://etcd3:2380
+      - --initial-cluster=etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380
+      - --initial-cluster-token=nexus-etcd-cluster
+      - --initial-cluster-state=new
+    ports:
+      - "2579:2379"
+      - "2580:2380"
+    volumes:
+      - etcd3-data:/etcd-data
+
+volumes:
+  etcd1-data:
+  etcd2-data:
+  etcd3-data:

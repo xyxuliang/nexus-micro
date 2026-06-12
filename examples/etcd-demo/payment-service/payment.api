@@ -1,0 +1,46 @@
+info (
+    title: "Payment Service"
+    desc: "支付服务"
+    version: "1.0.0"
+)
+
+type (
+    Payment {
+        Id        int64
+        OrderId   int64
+        Amount    float64
+        Method    string
+        Status    string
+        Created   int64
+    }
+    CreatePaymentReq {
+        OrderId int64
+        Amount  float64
+        Method  string
+    }
+    CreatePaymentResp {
+        Id     int64
+        Status string
+    }
+    GetPaymentReq {
+        Id int64
+    }
+    GetPaymentResp {
+        Payment Payment
+    }
+)
+
+@server(
+    prefix: "/api/v1"
+    service: payment
+)
+
+service PaymentService {
+    @handler CreatePayment
+    @doc "创建支付"
+    post /payments
+
+    @handler GetPayment
+    @doc "获取支付详情"
+    get /payments/:id
+}

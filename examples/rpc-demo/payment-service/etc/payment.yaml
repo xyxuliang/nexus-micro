@@ -1,0 +1,9 @@
+# payment-service gRPC 配置
+server:
+  name: payment-service
+  grpc_port: 50053
+
+etcd:
+  endpoints:
+    - localhost:2379
+  ttl: 30

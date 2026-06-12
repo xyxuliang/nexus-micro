@@ -1,0 +1,2 @@
+2026/06/12 20:02:34 [user-service] registered to etcd (grpc localhost:50054)
+2026/06/12 20:02:34 [user-service] gRPC listening on :50054

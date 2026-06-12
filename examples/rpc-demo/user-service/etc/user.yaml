@@ -1,0 +1,9 @@
+# user-service gRPC 配置
+server:
+  name: user-service
+  grpc_port: 50051
+
+etcd:
+  endpoints:
+    - localhost:2379
+  ttl: 30

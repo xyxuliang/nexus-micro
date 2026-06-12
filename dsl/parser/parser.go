@@ -85,7 +85,6 @@ func (p *Parser) parseFile() {
 
 // parseSyntax 解析 syntax = "v1" 语句。
 func (p *Parser) parseSyntax() {
-	p.nextToken() // 跳过 'syntax'
 	if !p.expectPeek(lexer.TokenAssign) {
 		return
 	}
@@ -98,7 +97,6 @@ func (p *Parser) parseSyntax() {
 
 // parseInfo 解析 info(...) 块。
 func (p *Parser) parseInfo() {
-	p.nextToken() // 跳过 'info'
 	if !p.expectPeek(lexer.TokenLParen) {
 		return
 	}
@@ -108,7 +106,7 @@ func (p *Parser) parseInfo() {
 		if p.currentTokenIs(lexer.TokenIdent) {
 			key := p.currentToken.Value
 			p.nextToken()
-			if p.expectPeek(lexer.TokenColon) {
+			if p.currentTokenIs(lexer.TokenColon) {
 				p.nextToken()
 				if p.currentTokenIs(lexer.TokenString) {
 					switch key {
@@ -132,7 +130,6 @@ func (p *Parser) parseInfo() {
 
 // parseTypeBlock 解析 type(...) 块。
 func (p *Parser) parseTypeBlock() {
-	p.nextToken() // 跳过 'type'
 	if !p.expectPeek(lexer.TokenLParen) {
 		return
 	}
@@ -156,7 +153,6 @@ func (p *Parser) parseType() *ast.Type {
 	name := p.currentToken.Value
 	t := &ast.Type{Name: name}
 
-	p.nextToken()
 	if !p.expectPeek(lexer.TokenLBrace) {
 		return nil
 	}
@@ -227,17 +223,16 @@ func (p *Parser) parseServiceBlock() {
 func (p *Parser) parseServerConfig() *ast.Config {
 	cfg := &ast.Config{}
 
-	p.nextToken()
 	if !p.expectPeek(lexer.TokenLParen) {
 		return cfg
 	}
 
 	p.nextToken()
 	for !p.currentTokenIs(lexer.TokenRParen) && !p.currentTokenIs(lexer.TokenEOF) {
-		if p.currentTokenIs(lexer.TokenIdent) {
+		if p.currentTokenIs(lexer.TokenIdent) || p.currentTokenIs(lexer.TokenKeyword) {
 			key := p.currentToken.Value
 			p.nextToken()
-			if p.expectPeek(lexer.TokenColon) {
+			if p.currentTokenIs(lexer.TokenColon) {
 				p.nextToken()
 				switch key {
 				case "prefix":
@@ -278,7 +273,6 @@ func (p *Parser) parseService(cfg *ast.Config) {
 		Middleware: cfg.Middleware,
 	}
 
-	p.nextToken()
 	if !p.expectPeek(lexer.TokenLBrace) {
 		return
 	}

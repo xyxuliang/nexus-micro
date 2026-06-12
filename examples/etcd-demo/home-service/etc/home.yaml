@@ -1,0 +1,7 @@
+server:
+  name: home-service
+  port: 8083
+etcd:
+  endpoints:
+    - localhost:2379
+  ttl: 30
