@@ -1,0 +1,43 @@
+# config.yaml — 服务配置文件示例
+server:
+  name: nexus-service
+  http:
+    port: 8080
+  grpc:
+    port: 9090
+  timeout: 30s
+
+discovery:
+  provider: static          # static | etcd | consul | k8s
+  static:
+    endpoints:
+      user: [localhost:8081, localhost:8082]
+
+log:
+  level: info              # debug | info | warn | error
+  format: json             # json | text
+
+metrics:
+  enabled: true
+  path: /metrics
+
+health:
+  path: /health
+
+tracing:
+  sample_rate: 0.1         # 10% 采样
+
+shedding:
+  cpu_threshold: 0.9       # CPU 使用率阈值
+  mem_threshold: 0.85      # 内存使用率阈值
+
+ratelimit:
+  rate: 1000               # 每秒请求数
+  burst: 2000              # 最大突发
+
+circuitbreaker:
+  window_size: 10s
+  bucket_count: 10
+  min_requests: 20
+  error_rate: 0.5
+  sleep_window: 30s

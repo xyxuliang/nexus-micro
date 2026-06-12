@@ -1,0 +1,65 @@
+// user.api — 用户服务 DSL 定义
+// 执行 nx gen api user.api 生成完整服务代码
+syntax = "v1"
+
+info (
+    title:   "User Service"
+    desc:    "用户管理微服务"
+    version: "v1.0.0"
+    author:  "team-platform"
+)
+
+// 类型定义
+type (
+    User {
+        Id       string `json:"id"`
+        Name     string `json:"name"`
+        Email    string `json:"email" validate:"required,email"`
+        Role     string `json:"role" validate:"required,oneof=admin user"`
+        Status   int32  `json:"status"`
+    }
+    CreateUserReq {
+        Name     string `json:"name" validate:"required,min=2,max=50"`
+        Email    string `json:"email" validate:"required,email"`
+        Password string `json:"password" validate:"required,min=8"`
+    }
+    CreateUserResp {
+        Id string `json:"id"`
+    }
+    GetUserReq {
+        Id string `path:"id" validate:"required,uuid"`
+    }
+    GetUserResp {
+        User User `json:"user"`
+    }
+    ListUsersReq {
+        Page     int32 `form:"page,default=1" validate:"min=1"`
+        PageSize int32 `form:"page_size,default=20" validate:"min=1,max=100"`
+    }
+    ListUsersResp {
+        Items []User `json:"items"`
+        Total int64  `json:"total"`
+    }
+)
+
+// 用户服务定义
+@server (
+    prefix: /api/v1
+    service: user
+    middleware: Auth, RateLimit
+)
+service UserService {
+    @handler CreateUser
+    @doc "创建用户"
+    @grpc
+    post /users (CreateUserReq) returns (CreateUserResp)
+
+    @handler GetUser
+    @doc "获取用户详情"
+    @grpc
+    get /users/:id (GetUserReq) returns (GetUserResp)
+
+    @handler ListUsers
+    @doc "分页查询用户列表"
+    get /users (ListUsersReq) returns (ListUsersResp)
+}
