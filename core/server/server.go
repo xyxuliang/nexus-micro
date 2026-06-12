@@ -12,13 +12,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nexus-micro/nexus-micro/core"
-	"github.com/nexus-micro/nexus-micro/core/config"
-	"github.com/nexus-micro/nexus-micro/core/di"
-	"github.com/nexus-micro/nexus-micro/core/lifecycle"
-	"github.com/nexus-micro/nexus-micro/core/middleware"
-	"github.com/nexus-micro/nexus-micro/core/registry"
-	"github.com/nexus-micro/nexus-micro/core/response"
+	"github.com/xyxuliang/nexus-micro/core"
+	"github.com/xyxuliang/nexus-micro/core/config"
+	"github.com/xyxuliang/nexus-micro/core/di"
+	"github.com/xyxuliang/nexus-micro/core/lifecycle"
+	"github.com/xyxuliang/nexus-micro/core/middleware"
+	"github.com/xyxuliang/nexus-micro/core/registry"
+	"github.com/xyxuliang/nexus-micro/core/response"
 )
 
 // Option 是 Server 的函数式配置选项。
@@ -29,39 +29,39 @@ type Option func(*Server)
 type Server struct {
 	mu sync.Mutex
 
-	name       string                 // 服务名称
-	version    string                 // 服务版本
-	container  *di.Container          // DI 容器
-	config     *config.Config         // 配置管理器
-	lifecycle  *lifecycle.Manager     // 生命周期管理器
+	name       string                // 服务名称
+	version    string                // 服务版本
+	container  *di.Container         // DI 容器
+	config     *config.Config        // 配置管理器
+	lifecycle  *lifecycle.Manager    // 生命周期管理器
 	registry   registry.Registry     // 服务注册中心
-	chain      *core.MiddlewareChain  // 中间件链
-	httpServer *http.Server           // HTTP 服务器
-	grpcServer interface{}            // gRPC 服务器（预留）
+	chain      *core.MiddlewareChain // 中间件链
+	httpServer *http.Server          // HTTP 服务器
+	grpcServer interface{}           // gRPC 服务器（预留）
 
-	httpAddr    string                // HTTP 监听地址
-	grpcAddr    string                // gRPC 监听地址
-	httpPort    int                   // HTTP 端口
-	grpcPort    int                   // gRPC 端口
-	rateLimit   int                   // 限流速率
-	rateBurst   int                   // 限流突发
-	timeout     time.Duration         // 请求超时
+	httpAddr  string        // HTTP 监听地址
+	grpcAddr  string        // gRPC 监听地址
+	httpPort  int           // HTTP 端口
+	grpcPort  int           // gRPC 端口
+	rateLimit int           // 限流速率
+	rateBurst int           // 限流突发
+	timeout   time.Duration // 请求超时
 
-	started     bool                  // 是否已启动
-	services    []interface{}          // 注册的业务服务
-	httpHandler http.Handler          // HTTP 处理器
+	started     bool          // 是否已启动
+	services    []interface{} // 注册的业务服务
+	httpHandler http.Handler  // HTTP 处理器
 }
 
 // New 创建一个新的 Server 实例。
 // 使用函数式选项模式配置 Server，支持链式调用。
 func New(opts ...Option) *Server {
 	s := &Server{
-		name:     "nexus-service",
-		version:  "v1.0.0",
+		name:      "nexus-service",
+		version:   "v1.0.0",
 		container: di.New(),
-		chain:    middleware.DefaultChain(),
-		httpAddr: ":8080",
-		grpcAddr: ":9090",
+		chain:     middleware.DefaultChain(),
+		httpAddr:  ":8080",
+		grpcAddr:  ":9090",
 		rateLimit: 1000,
 		rateBurst: 2000,
 		timeout:   30 * time.Second,
@@ -226,9 +226,9 @@ func (s *Server) Start() error {
 		// 注册到注册中心
 		if s.registry != nil {
 			instance := &registry.ServiceInstance{
-				ID:       fmt.Sprintf("%s-%s", s.name, s.version),
-				Name:     s.name,
-				Version:  s.version,
+				ID:        fmt.Sprintf("%s-%s", s.name, s.version),
+				Name:      s.name,
+				Version:   s.version,
 				Endpoints: []string{fmt.Sprintf("http://localhost%s", s.httpAddr)},
 			}
 			if err := s.registry.Register(ctx, instance); err != nil {

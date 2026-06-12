@@ -2,25 +2,26 @@
 // CLI 工具入口，提供项目创建、代码生成、开发运行等命令。
 //
 // 使用方式：
-//   nx new <service-name>         创建新服务
-//   nx gen api <file.api>         从 .api 生成完整服务
-//   nx gen proto <file.proto>     从 .proto 生成完整服务
-//   nx gen client <service-name>  生成客户端 SDK
-//   nx gen doc                    生成 OpenAPI 文档
-//   nx module <name>              创建业务模块
-//   nx slice <module> <name>      创建 Vertical Slice 切片
-//   nx query <module> <name>      创建 Query 切片
-//   nx run                        启动开发服务器
-//   nx build                      构建生产二进制
-//   nx test                       运行测试
-//   nx lint                       代码检查
+//
+//	nx new <service-name>         创建新服务
+//	nx gen api <file.api>         从 .api 生成完整服务
+//	nx gen proto <file.proto>     从 .proto 生成完整服务
+//	nx gen client <service-name>  生成客户端 SDK
+//	nx gen doc                    生成 OpenAPI 文档
+//	nx module <name>              创建业务模块
+//	nx slice <module> <name>      创建 Vertical Slice 切片
+//	nx query <module> <name>      创建 Query 切片
+//	nx run                        启动开发服务器
+//	nx build                      构建生产二进制
+//	nx test                       运行测试
+//	nx lint                       代码检查
 package main
 
 import (
 	"fmt"
 	"os"
 
-	"github.com/nexus-micro/nexus-micro/generator"
+	"github.com/xyxuliang/nexus-micro/generator"
 )
 
 func main() {
@@ -159,7 +160,7 @@ func cmdGenAPI(args []string) {
 	apiFile := args[0]
 	fmt.Printf("Generating code from %s...\n", apiFile)
 
-	gen := generator.New("service", "github.com/nexus-micro/nexus-micro")
+	gen := generator.New("service", "github.com/xyxuliang/nexus-micro")
 	if err := gen.GenerateFromFile(apiFile); err != nil {
 		fmt.Fprintf(os.Stderr, "nx gen api: %v\n", err)
 		os.Exit(1)

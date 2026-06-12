@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nexus-micro/nexus-micro/core/di"
+	"github.com/xyxuliang/nexus-micro/core/di"
 )
 
 // ServiceInstance 表示一个服务实例的完整信息。
@@ -143,12 +143,12 @@ type HealthCheck func(ctx context.Context, instance *ServiceInstance) bool
 
 // Config 是注册中心的配置。
 type Config struct {
-	Provider      string            // 注册中心类型：static, etcd, consul, k8s
+	Provider        string              // 注册中心类型：static, etcd, consul, k8s
 	StaticEndpoints map[string][]string // static 模式的端点配置
-	EtcdEndpoints   []string          // etcd 端点
-	ConsulAddr      string            // Consul 地址
-	HealthCheck     HealthCheck       // 健康检查函数
-	TTL             time.Duration     // 健康检查超时
+	EtcdEndpoints   []string            // etcd 端点
+	ConsulAddr      string              // Consul 地址
+	HealthCheck     HealthCheck         // 健康检查函数
+	TTL             time.Duration       // 健康检查超时
 }
 
 // Provider 是 Registry 的 DI Provider 实现。
@@ -161,7 +161,7 @@ func NewProvider(cfg *Config) *Provider {
 	return &Provider{config: cfg}
 }
 
-func (p *Provider) Name() string       { return "registry" }
+func (p *Provider) Name() string        { return "registry" }
 func (p *Provider) DependsOn() []string { return []string{"config"} }
 
 func (p *Provider) Init(ctx context.Context, c *di.Container) error {

@@ -6,7 +6,6 @@ package shedding
 import (
 	"runtime"
 	"sync"
-	"time"
 )
 
 // Shedder 过载保护器接口。
@@ -20,7 +19,7 @@ type Shedder interface {
 type Config struct {
 	CPUThreshold float64 // CPU 使用率阈值（0-1，默认 0.9 = 90%）
 	MemThreshold float64 // 内存使用率阈值（0-1，默认 0.85 = 85%）
-	Window       int64    // 滑动窗口大小（秒，默认 5s）
+	Window       int64   // 滑动窗口大小（秒，默认 5s）
 }
 
 // DefaultConfig 返回默认配置。

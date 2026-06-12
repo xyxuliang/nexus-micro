@@ -8,21 +8,21 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/nexus-micro/nexus-micro/core/balancer"
-	"github.com/nexus-micro/nexus-micro/core/circuitbreaker"
-	"github.com/nexus-micro/nexus-micro/core/registry"
-	"github.com/nexus-micro/nexus-micro/internal/errors"
+	"github.com/xyxuliang/nexus-micro/core/balancer"
+	"github.com/xyxuliang/nexus-micro/core/circuitbreaker"
+	"github.com/xyxuliang/nexus-micro/core/registry"
+	"github.com/xyxuliang/nexus-micro/internal/errors"
 )
 
 // Client 是 RPC 客户端。
 type Client struct {
-	serviceName string             // 目标服务名
-	registry   registry.Registry  // 服务注册中心
-	balancer   balancer.LoadBalancer // 负载均衡
-	cb         *circuitbreaker.AdaptiveCB // 熔断器
-	timeout    time.Duration       // 请求超时
-	retries    int                 // 重试次数
-	retryDelay time.Duration       // 重试延迟
+	serviceName string                     // 目标服务名
+	registry    registry.Registry          // 服务注册中心
+	balancer    balancer.LoadBalancer      // 负载均衡
+	cb          *circuitbreaker.AdaptiveCB // 熔断器
+	timeout     time.Duration              // 请求超时
+	retries     int                        // 重试次数
+	retryDelay  time.Duration              // 重试延迟
 }
 
 // Option 是客户端配置选项。
@@ -68,9 +68,9 @@ func WithCircuitBreaker(cfg *circuitbreaker.Config) Option {
 func New(serviceName string, opts ...Option) *Client {
 	c := &Client{
 		serviceName: serviceName,
-		timeout:    3 * time.Second,
-		retries:    3,
-		retryDelay: 100 * time.Millisecond,
+		timeout:     3 * time.Second,
+		retries:     3,
+		retryDelay:  100 * time.Millisecond,
 	}
 
 	for _, opt := range opts {

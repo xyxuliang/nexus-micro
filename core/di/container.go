@@ -6,7 +6,6 @@ package di
 import (
 	"context"
 	"fmt"
-	"sort"
 	"sync"
 )
 
@@ -186,4 +185,3 @@ func GetString(c *Container, name string) string {
 	s, _ := inst.(string)
 	return s
 }
-

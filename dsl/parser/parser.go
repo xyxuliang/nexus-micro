@@ -7,17 +7,17 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/nexus-micro/nexus-micro/dsl/ast"
-	"github.com/nexus-micro/nexus-micro/dsl/lexer"
+	"github.com/xyxuliang/nexus-micro/dsl/ast"
+	"github.com/xyxuliang/nexus-micro/dsl/lexer"
 )
 
 // Parser 是语法分析器。
 type Parser struct {
-	lexer       *lexer.Lexer           // 词法分析器
-	currentToken lexer.Token            // 当前 token
-	peekToken    lexer.Token            // 下一个 token（lookahead）
-	file         *ast.File              // 当前正在解析的 AST
-	errors       []error                // 错误列表
+	lexer        *lexer.Lexer // 词法分析器
+	currentToken lexer.Token  // 当前 token
+	peekToken    lexer.Token  // 下一个 token（lookahead）
+	file         *ast.File    // 当前正在解析的 AST
+	errors       []error      // 错误列表
 }
 
 // New 创建一个新的语法分析器。

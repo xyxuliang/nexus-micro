@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/nexus-micro/nexus-micro/internal/errors"
+	"github.com/xyxuliang/nexus-micro/internal/errors"
 )
 
 // Response 是统一响应结构体。

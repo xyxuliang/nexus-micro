@@ -11,17 +11,17 @@ import (
 	"sync"
 	"time"
 
-	"github.com/nexus-micro/nexus-micro/core/di"
+	"github.com/xyxuliang/nexus-micro/core/di"
 )
 
 // Config 是配置管理器，封装 Viper 提供配置读写和热更新能力。
 // 线程安全，支持并发读取配置。
 type Config struct {
-	mu       sync.RWMutex
-	data     map[string]interface{} // 配置数据
-	filePath string                 // 配置文件路径
-	hotReload bool                  // 是否启用热更新
-	watchers  []func(string)        // 配置变更回调
+	mu        sync.RWMutex
+	data      map[string]interface{} // 配置数据
+	filePath  string                 // 配置文件路径
+	hotReload bool                   // 是否启用热更新
+	watchers  []func(string)         // 配置变更回调
 }
 
 // Provider 是 Config 的 DI Provider 实现。
@@ -38,8 +38,8 @@ func NewProvider(filePath string, hotReload bool) *Provider {
 	}
 }
 
-func (p *Provider) Name() string             { return "config" }
-func (p *Provider) DependsOn() []string       { return nil }
+func (p *Provider) Name() string        { return "config" }
+func (p *Provider) DependsOn() []string { return nil }
 
 func (p *Provider) Init(ctx context.Context, c *di.Container) error {
 	cfg := New(p.filePath, p.hotReload)
@@ -89,21 +89,21 @@ func (c *Config) Load(ctx context.Context) error {
 // loadDefaults 加载框架默认配置。
 func (c *Config) loadDefaults() {
 	c.data = map[string]interface{}{
-		"server.name":          "nexus-service",
-		"server.http.port":     8080,
-		"server.grpc.port":     9090,
-		"server.timeout":       "30s",
-		"discovery.provider":   "static",
-		"log.level":            "info",
-		"log.format":           "json",
-		"metrics.enabled":      true,
-		"metrics.path":         "/metrics",
-		"health.path":          "/health",
-		"tracing.sample_rate":  0.1,
-		"shedding.cpu_threshold": 0.9,
-		"shedding.mem_threshold": 0.85,
-		"ratelimit.rate":       1000,
-		"ratelimit.burst":      2000,
+		"server.name":                 "nexus-service",
+		"server.http.port":            8080,
+		"server.grpc.port":            9090,
+		"server.timeout":              "30s",
+		"discovery.provider":          "static",
+		"log.level":                   "info",
+		"log.format":                  "json",
+		"metrics.enabled":             true,
+		"metrics.path":                "/metrics",
+		"health.path":                 "/health",
+		"tracing.sample_rate":         0.1,
+		"shedding.cpu_threshold":      0.9,
+		"shedding.mem_threshold":      0.85,
+		"ratelimit.rate":              1000,
+		"ratelimit.burst":             2000,
 		"circuitbreaker.window_size":  "10s",
 		"circuitbreaker.bucket_count": 10,
 		"circuitbreaker.min_requests": 20,

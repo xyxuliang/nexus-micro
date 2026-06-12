@@ -154,7 +154,7 @@ nexus-micro/
 ### 1. 安装 CLI
 
 ```bash
-go install github.com/nexus-micro/nexus-micro/cmd/nx@latest
+go install github.com/xyxuliang/nexus-micro/cmd/nx@latest
 ```
 
 ### 2. 创建新服务
@@ -239,7 +239,7 @@ go run main.go
 package main
 
 import (
-    "github.com/nexus-micro/nexus-micro"
+    "github.com/xyxuliang/nexus-micro"
 )
 
 func main() {
@@ -516,7 +516,7 @@ queue.Dispatch(ctx, task)
 
 ```bash
 # 克隆
-git clone https://github.com/nexus-micro/nexus-micro.git
+git clone https://github.com/xyxuliang/nexus-micro.git
 cd nexus-micro
 
 # 编译 CLI

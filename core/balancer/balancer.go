@@ -10,7 +10,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/nexus-micro/nexus-micro/core/registry"
+	"github.com/xyxuliang/nexus-micro/core/registry"
 )
 
 // Strategy 负载均衡策略枚举。
@@ -85,7 +85,7 @@ type weightedRoundRobin struct {
 
 // getWeight 从元数据中提取 weight，默认 100。
 func (wr *weightedRoundRobin) getWeight(inst *registry.ServiceInstance) int {
-	wStr, ok := inst.Metadata["weight"]
+	_, ok := inst.Metadata["weight"]
 	if !ok {
 		return 100
 	}
@@ -122,7 +122,7 @@ func (wr *weightedRoundRobin) Select(ctx context.Context, instances []*registry.
 
 // leastConnection 最少连接负载均衡。
 type leastConnection struct {
-	mu sync.Mutex
+	mu          sync.Mutex
 	connections map[string]int // instanceID → 连接数
 }
 

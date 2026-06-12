@@ -1,3 +1,3 @@
-module github.com/nexus-micro/nexus-micro
+module github.com/xyxuliang/nexus-micro
 
 go 1.24

@@ -12,7 +12,7 @@ import (
 	"sync/atomic"
 	"syscall"
 
-	"github.com/nexus-micro/nexus-micro/core/di"
+	"github.com/xyxuliang/nexus-micro/core/di"
 )
 
 // State 表示服务的当前生命周期状态。
@@ -56,7 +56,7 @@ func (s State) String() string {
 // Manager 是生命周期管理器。
 // 负责协调服务的启动、运行和关闭流程。
 type Manager struct {
-	state     atomic.Int32      // 当前状态
+	state     atomic.Int32       // 当前状态
 	ctx       context.Context    // 生命周期 context
 	cancel    context.CancelFunc // 取消函数
 	container *di.Container      // DI 容器
@@ -82,8 +82,8 @@ func NewProvider(hooks ...Hook) *Provider {
 	return &Provider{hooks: hooks}
 }
 
-func (p *Provider) Name() string            { return "lifecycle" }
-func (p *Provider) DependsOn() []string      { return []string{"config"} }
+func (p *Provider) Name() string        { return "lifecycle" }
+func (p *Provider) DependsOn() []string { return []string{"config"} }
 
 func (p *Provider) Init(ctx context.Context, c *di.Container) error {
 	lifeCtx, cancel := context.WithCancel(ctx)

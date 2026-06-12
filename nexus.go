@@ -3,7 +3,7 @@
 //
 // 典型用法：
 //
-//	import "github.com/nexus-micro/nexus-micro"
+//	import "github.com/xyxuliang/nexus-micro"
 //
 //	func main() {
 //	    srv := nexus.NewServer(
@@ -16,8 +16,8 @@
 package nexus
 
 import (
-	"github.com/nexus-micro/nexus-micro/core"
-	"github.com/nexus-micro/nexus-micro/core/server"
+	"github.com/xyxuliang/nexus-micro/core"
+	"github.com/xyxuliang/nexus-micro/core/server"
 )
 
 // NewServer 创建一个新的服务实例（便捷方法）。

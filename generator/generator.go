@@ -14,9 +14,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/nexus-micro/nexus-micro/dsl/ast"
-	"github.com/nexus-micro/nexus-micro/dsl/parser"
-	"github.com/nexus-micro/nexus-micro/internal/util"
+	"github.com/xyxuliang/nexus-micro/dsl/ast"
+	"github.com/xyxuliang/nexus-micro/dsl/parser"
+	"github.com/xyxuliang/nexus-micro/internal/util"
 )
 
 // Generator 是代码生成器。
@@ -127,7 +127,7 @@ func (g *Generator) generateConfig(dir string, svc *ast.Service, file *ast.File)
 package config
 
 import (
-	"github.com/nexus-micro/nexus-micro/core/config"
+	"github.com/xyxuliang/nexus-micro/core/config"
 )
 
 // Config 是 %s 服务的配置结构体。
@@ -161,8 +161,8 @@ package handler
 import (
 	"context"
 
-	"github.com/nexus-micro/nexus-micro/core"
-	"github.com/nexus-micro/nexus-micro/core/response"
+	"github.com/xyxuliang/nexus-micro/core"
+	"github.com/xyxuliang/nexus-micro/core/response"
 	"%s/service/%s/internal/logic"
 	"%s/service/%s/internal/svc"
 )
@@ -256,7 +256,7 @@ package middleware
 import (
 	"context"
 
-	"github.com/nexus-micro/nexus-micro/core"
+	"github.com/xyxuliang/nexus-micro/core"
 )
 
 // AuthMiddleware 是示例认证中间件。
@@ -359,7 +359,7 @@ package server
 import (
 	"net/http"
 
-	"github.com/nexus-micro/nexus-micro/core"
+	"github.com/xyxuliang/nexus-micro/core"
 	"%s/service/%s/internal/handler"
 	"%s/service/%s/internal/svc"
 )
@@ -398,7 +398,7 @@ func (g *Generator) generateMain(dir string, svc *ast.Service) {
 package main
 
 import (
-	"github.com/nexus-micro/nexus-micro/core/server"
+	"github.com/xyxuliang/nexus-micro/core/server"
 	"%s/service/%s/internal/config"
 	"%s/service/%s/internal/svc"
 )

@@ -4,7 +4,6 @@
 package circuitbreaker
 
 import (
-	"context"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -53,47 +52,47 @@ type CircuitBreaker interface {
 
 // Config 熔断器配置。
 type Config struct {
-	WindowSize   time.Duration // 滑动窗口大小（默认 10s）
-	BucketCount  int           // 桶数量（默认 10）
-	MinRequests  int           // 触发熔断的最小请求数（默认 20）
-	ErrorRate    float64       // 错误率阈值（默认 0.5 = 50%）
-	SlowRate    float64       // 慢请求比例阈值（默认 0.5 = 50%）
+	WindowSize    time.Duration // 滑动窗口大小（默认 10s）
+	BucketCount   int           // 桶数量（默认 10）
+	MinRequests   int           // 触发熔断的最小请求数（默认 20）
+	ErrorRate     float64       // 错误率阈值（默认 0.5 = 50%）
+	SlowRate      float64       // 慢请求比例阈值（默认 0.5 = 50%）
 	SlowThreshold time.Duration // 慢请求判定（默认 500ms）
-	SleepWindow  time.Duration // 熔断休眠时间（默认 30s）
-	HalfOpenMax  int           // 半开状态最大试探请求数（默认 3）
+	SleepWindow   time.Duration // 熔断休眠时间（默认 30s）
+	HalfOpenMax   int           // 半开状态最大试探请求数（默认 3）
 }
 
 // DefaultConfig 返回默认配置。
 func DefaultConfig() *Config {
 	return &Config{
-		WindowSize:   10 * time.Second,
-		BucketCount:  10,
-		MinRequests:  20,
-		ErrorRate:    0.5,
-		SlowRate:     0.5,
+		WindowSize:    10 * time.Second,
+		BucketCount:   10,
+		MinRequests:   20,
+		ErrorRate:     0.5,
+		SlowRate:      0.5,
 		SlowThreshold: 500 * time.Millisecond,
-		SleepWindow:  30 * time.Second,
-		HalfOpenMax:  3,
+		SleepWindow:   30 * time.Second,
+		HalfOpenMax:   3,
 	}
 }
 
 // AdaptiveCB 是自适应熔断器实现。
 type AdaptiveCB struct {
-	cfg    *Config
-	state  atomic.Int32
-	mu     sync.Mutex
+	cfg     *Config
+	state   atomic.Int32
+	mu      sync.Mutex
 	buckets []bucket
-	window []bucket // 滑动窗口
+	window  []bucket // 滑动窗口
 
-	openSince time.Time     // 打开时间
-	halfOpenAttempts int   // 半开状态已尝试次数
+	openSince        time.Time // 打开时间
+	halfOpenAttempts int       // 半开状态已尝试次数
 }
 
 // bucket 滑动窗口的一个桶。
 type bucket struct {
-	total    int         // 总请求数
-	success  int         // 成功请求数
-	slow     int         // 慢请求数
+	total   int // 总请求数
+	success int // 成功请求数
+	slow    int // 慢请求数
 }
 
 // New 创建自适应熔断器。
@@ -102,9 +101,9 @@ func New(cfg *Config) *AdaptiveCB {
 		cfg = DefaultConfig()
 	}
 	cb := &AdaptiveCB{
-		cfg:    cfg,
+		cfg:     cfg,
 		buckets: make([]bucket, cfg.BucketCount),
-		window: make([]bucket, 0, cfg.BucketCount),
+		window:  make([]bucket, 0, cfg.BucketCount),
 	}
 	cb.state.Store(int32(StateClosed))
 	return cb
